@@ -24,8 +24,8 @@ public class ProductsController {
         return productService.loadAllProducts();
     }
 
-    @GetMapping(value = "/stream",produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<Product> getAllProductsStream() {
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ProductDto> getAllProductsStream() {
         return productService.loadAllProductsStream();
     }
 
@@ -35,7 +35,7 @@ public class ProductsController {
         return productService.saveProduct(productDtoMono);
     }
 
-    @PostMapping("/{id}")
+    @PutMapping("/{id}")
     public Mono<ProductDto> updateProductById(@PathVariable("id") Long id, @RequestBody Mono<ProductDto> productDtoMono){
         return productService.updateProductById(id, productDtoMono);
     }

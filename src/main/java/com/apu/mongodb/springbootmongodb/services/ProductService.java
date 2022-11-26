@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface ProductService {
     List<Product> loadAllProducts();
-    Flux<Product> loadAllProductsStream();
+    Flux<ProductDto> loadAllProductsStream();
     Mono<ProductDto> saveProduct(Mono<ProductDto> productDtoMono);
     Mono<ProductDto> updateProductById(Long id, Mono<ProductDto> productDtoMono);
     Mono<ProductDto> getProductById(Long id);

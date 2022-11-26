@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface CustomerService {
     List<Customer> loadAllCustomers();
-    Flux<Customer> loadAllCustomersStream();
+    Flux<CustomerDto> loadAllCustomersStream();
     Mono<CustomerDto> saveCustomer(Mono<CustomerDto> customerDtoMono) throws Exception;
     Mono<CustomerDto> updateCustomerById(Long id, Mono<CustomerDto> customerDto);
     Mono<Void> deleteCustomerById(Long id);

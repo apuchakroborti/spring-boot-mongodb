@@ -49,12 +49,8 @@ public class CustomerServiceImpls implements CustomerService {
 
 
     @Override
-    public Flux<Customer> loadAllCustomersStream() {
-        long start = System.currentTimeMillis();
-        Flux<Customer> customers = customerRepository.findAll();
-        long end = System.currentTimeMillis();
-        System.out.println("Total execution time : " + (end - start));
-        return customers.delayElements(Duration.ofSeconds(1));
+    public Flux<CustomerDto> loadAllCustomersStream() {
+        return customerRepository.findAll().map(Utils::entityToDtoCustomer);
     }
 
     @Override
@@ -67,8 +63,7 @@ public class CustomerServiceImpls implements CustomerService {
             //TODO need o create wallet while adding every customer
 //            walletService.saveWallet(Mono.just(new WalletDto(null, null, "BDT", 100, true)));
         return customerDtoMono;
-        }
-        catch (Exception e){
+        }catch (Exception e){
             log.error(e.getMessage());
             e.printStackTrace();
             throw new Exception(e.getMessage());

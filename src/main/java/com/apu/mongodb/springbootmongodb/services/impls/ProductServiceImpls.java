@@ -36,12 +36,13 @@ public class ProductServiceImpls implements ProductService {
 
 
     @Override
-    public Flux<Product> loadAllProductsStream() {
+    public Flux<ProductDto> loadAllProductsStream() {
         long start = System.currentTimeMillis();
-        Flux<Product> customers = dao.getProductsStream();
+        Flux<ProductDto> products = productRepository.findAll()
+                .map(Utils::entityToDtoProduct);
         long end = System.currentTimeMillis();
         System.out.println("Total execution time : " + (end - start));
-        return customers;
+        return products;
     }
     @Override
     public Mono<ProductDto> saveProduct(Mono<ProductDto> productDtoMono){
