@@ -9,10 +9,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Getter
 @Setter
 @ToString
-@Document(collection = "book")
-public class Book {
+@Document(collection = "wallets")
+public class Wallet {
     @Id
-    private Integer id;
-    private String bookName;
-    private Integer authorId;
+    private Long id;
+    private Long customerId;
+    private String currency;
+    private Integer balance;
+    private Boolean status;
 }
