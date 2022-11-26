@@ -1,9 +1,13 @@
 package com.apu.mongodb.springbootmongodb.services.impls;
 
 import com.apu.mongodb.springbootmongodb.dao.WalletDao;
+import com.apu.mongodb.springbootmongodb.dto.CustomerDto;
+import com.apu.mongodb.springbootmongodb.dto.WalletDto;
 import com.apu.mongodb.springbootmongodb.model.Wallet;
 import com.apu.mongodb.springbootmongodb.repository.WalletRepository;
+import com.apu.mongodb.springbootmongodb.sequence_generator.ISequenceGeneratorService;
 import com.apu.mongodb.springbootmongodb.services.WalletService;
+import com.apu.mongodb.springbootmongodb.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -20,6 +24,9 @@ public class WalletServiceImpls implements WalletService {
     @Autowired
     private WalletRepository walletRepository;
 
+    @Autowired
+    private ISequenceGeneratorService iSequenceGeneratorService;
+
 
     @Override
     public Flux<Wallet> getAllWallets() {
@@ -27,43 +34,30 @@ public class WalletServiceImpls implements WalletService {
     }
 
     @Override
-    public Mono<Wallet> saveWallet(Wallet wallet){
-        return  walletRepository.save(wallet);
+    public Mono<WalletDto> saveWallet(Mono<WalletDto> customerDtoMono) throws Exception{
+        long walletIdSequence = iSequenceGeneratorService.generateSequence("wallet-id");
 
+        return  customerDtoMono.map(Utils::dtoToEntityWallet)
+                .flatMap(walletRepository::insert)
+                .map(Utils::entityToDtoWallet);
     }
-
     @Override
-    public Mono<Wallet> updateWalletById(Long id, Wallet wallet){
+    public Mono<WalletDto> updateWalletById(Long id, Mono<WalletDto> walletDtoMono){
         return walletRepository.findById(id)
-                .doOnNext(wallet1 -> wallet1.setId(id));
-        /*Optional<Wallet> optionalWallet = walletRepository.findById(id);
-        if(optionalWallet.isPresent()){
-            Wallet walletEO = new Wallet();
-
-            if(wallet.getBalance()!=null){
-                walletEO.setBalance(walletEO.getBalance() - wallet.getBalance());
-            }
-            walletRepository.save(walletEO);
-            return Mono.just(walletEO);
-        }
-        return Mono.just(null);*/
+                .flatMap(wallet->walletDtoMono.map(Utils::dtoToEntityWallet)
+                        .doOnNext(e->e.setId(id)))
+                .flatMap(walletRepository::save)
+                .map(Utils::entityToDtoWallet);
     }
 
-    @Override
-    public Mono<Boolean> deleteWalletById(Long id){
-        walletRepository.deleteById(id);
-
-        return Mono.just(true);
-    }
 
     @Override
-    public Mono<Wallet> findWalletById(Long id) {
+    public Mono<WalletDto> findWalletById(Long id){
         return walletRepository.findById(id)
-                .doOnNext(wallet1 -> wallet1.setId(id));
-        /*Optional<Wallet> optionalWallet = walletRepository.findById(id);
-        if(optionalWallet.isPresent()){
-            return Mono.just(optionalWallet.get());
-        }
-        return Mono.just(null);*/
+                .map(Utils::entityToDtoWallet);
+    }
+    @Override
+    public Mono<Void> deleteWalletById(Long id){
+        return walletRepository.deleteById(id);
     }
 }

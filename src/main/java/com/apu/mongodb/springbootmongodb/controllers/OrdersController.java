@@ -1,5 +1,6 @@
 package com.apu.mongodb.springbootmongodb.controllers;
 
+import com.apu.mongodb.springbootmongodb.dto.OrderDto;
 import com.apu.mongodb.springbootmongodb.model.Order;
 import com.apu.mongodb.springbootmongodb.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +31,17 @@ public class OrdersController {
 
 
     @PostMapping
-    public Mono<Order> addOrder(@RequestBody Order order){
-        return orderService.saveOrder(order);
+    public Mono<OrderDto> addOrder(@RequestBody Mono<OrderDto> orderDtoMono){
+        return orderService.saveOrder(orderDtoMono);
     }
 
+    @PutMapping("/{id}")
+    public Mono<OrderDto> updateOrderById(@PathVariable("id") Long id, @RequestBody Mono<OrderDto> orderDtoMono){
+        return orderService.updateOrderById(id, orderDtoMono);
+    }
 
     @GetMapping("/{id}")
-    public Mono<Order> getOrderById(@PathVariable("id") Long id){
+    public Mono<OrderDto> getOrderById(@PathVariable("id") Long id){
         return orderService.findOrderById(id);
     }
 

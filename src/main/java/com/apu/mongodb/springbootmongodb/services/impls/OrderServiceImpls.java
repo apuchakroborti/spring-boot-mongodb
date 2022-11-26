@@ -1,6 +1,7 @@
 package com.apu.mongodb.springbootmongodb.services.impls;
 
 import com.apu.mongodb.springbootmongodb.dao.OrderDao;
+import com.apu.mongodb.springbootmongodb.dto.OrderDto;
 import com.apu.mongodb.springbootmongodb.model.Order;
 import com.apu.mongodb.springbootmongodb.repository.OrderRepository;
 import com.apu.mongodb.springbootmongodb.services.OrderService;
@@ -11,15 +12,19 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class OrderServiceImpls implements OrderService {
-    @Autowired
-    private OrderDao dao;
+
+    private final OrderDao dao;
+    private final OrderRepository orderRepository;
 
     @Autowired
-    private OrderRepository orderRepository;
+    OrderServiceImpls(OrderDao dao,
+                      OrderRepository orderRepository){
+        this.dao = dao;
+        this.orderRepository = orderRepository;
+    }
 
 
     @Override
@@ -41,41 +46,29 @@ public class OrderServiceImpls implements OrderService {
         return ordersStream;
     }
     @Override
-    public Mono<Order> saveOrder(Order order){
-        return orderRepository.save(order);
+    public Mono<OrderDto> saveOrder(Mono<OrderDto> orderDtoMono){
+        return orderDtoMono.map(Utils::dtoToEntityOrder)
+                .flatMap(orderRepository::insert)
+                .map(Utils::entityToDtoOrder);
 
     }
     @Override
-    public Mono<Order> updateOrderById(Long id, Order order){
+    public Mono<OrderDto> updateOrderById(Long id, Mono<OrderDto> orderDtoMono){
         return orderRepository.findById(id)
-                        .doOnNext(e->e.setId(id));
-        /*Optional<Order> optionalOrder = orderRepository.findById(id);
-        if(optionalOrder.isPresent()){
-            Order orderEO = optionalOrder.get();
+                .flatMap(order -> orderDtoMono.map(Utils::dtoToEntityOrder)
+                    .doOnNext(o -> o.setId(id)))
+                .map(Utils::entityToDtoOrder);
 
-            if(order.getShippingAddress()!=null){
-                orderEO.setShippingAddress(order.getShippingAddress());
-            }
-            return Mono.just(orderEO);
-        }
-        return Mono.just(order);*/
     }
+
     @Override
-    public Mono<Order> findOrderById(Long id){
+    public Mono<OrderDto> findOrderById(Long id){
         return orderRepository.findById(id)
-                .doOnNext(e->e.setId(id));
-        /*Optional<Order> optionalOrder = orderRepository.findById(id);
-        if(optionalOrder.isPresent()){
-            Order orderEO = optionalOrder.get();
-            return Mono.just(orderEO);
-        }
-        return Mono.just(null);
-*/    }
+                .map(Utils::entityToDtoOrder);
+    }
 
     @Override
-    public Mono<Boolean> deleteOrderById(Long id){
-        orderRepository.deleteById(id);
-
-        return null;
+    public Mono<Void> deleteOrderById(Long id){
+        return orderRepository.deleteById(id);
     }
 }

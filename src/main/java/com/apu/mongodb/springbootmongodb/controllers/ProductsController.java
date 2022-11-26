@@ -1,5 +1,6 @@
 package com.apu.mongodb.springbootmongodb.controllers;
 
+import com.apu.mongodb.springbootmongodb.dto.ProductDto;
 import com.apu.mongodb.springbootmongodb.model.Product;
 import com.apu.mongodb.springbootmongodb.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,21 +31,22 @@ public class ProductsController {
 
 
     @PostMapping
-    public Mono<Product> addProduct(@RequestBody Product product){
-        Mono<Product>  productMono = productService.saveProduct(product);
-        return productMono;
+    public Mono<ProductDto> addProduct(@RequestBody Mono<ProductDto> productDtoMono){
+        return productService.saveProduct(productDtoMono);
     }
 
+    @PostMapping("/{id}")
+    public Mono<ProductDto> updateProductById(@PathVariable("id") Long id, @RequestBody Mono<ProductDto> productDtoMono){
+        return productService.updateProductById(id, productDtoMono);
+    }
 
     @GetMapping("/{id}")
-    public Mono<Product> getProductById(@PathVariable("id") Long id){
+    public Mono<ProductDto> getProductById(@PathVariable("id") Long id){
         return productService.getProductById(id);
     }
 
     @DeleteMapping("/{id}")
-    public Mono<Boolean> deleteProductById(@PathVariable("id") Long id){
-        productService.deleteProductById(id);
-
-        return Mono.just(true);
+    public Mono<Void> deleteProductById(@PathVariable("id") Long id){
+        return productService.deleteProductById(id);
     }
 }

@@ -1,9 +1,11 @@
 package com.apu.mongodb.springbootmongodb.services.impls;
 
 import com.apu.mongodb.springbootmongodb.dao.ProductDao;
+import com.apu.mongodb.springbootmongodb.dto.ProductDto;
 import com.apu.mongodb.springbootmongodb.model.Product;
 import com.apu.mongodb.springbootmongodb.repository.ProductRepository;
 import com.apu.mongodb.springbootmongodb.services.ProductService;
+import com.apu.mongodb.springbootmongodb.utils.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -42,41 +44,28 @@ public class ProductServiceImpls implements ProductService {
         return customers;
     }
     @Override
-    public Mono<Product> saveProduct(Product product){
-        return productRepository.save(product);
+    public Mono<ProductDto> saveProduct(Mono<ProductDto> productDtoMono){
+        return productDtoMono.map(Utils::dtoToEntityProduct)
+                .flatMap(productRepository::insert)
+                .map(Utils::entityToDtoProduct);
 
     }
     @Override
-    public Mono<Product> updateProductById(Long id, Product product1){
+    public Mono<ProductDto> updateProductById(Long id, Mono<ProductDto> productDtoMono){
         return productRepository.findById(id)
-                .doOnNext(e->e.setId(id));
-        /*Optional<Product> optionalProduct = productRepository.findById(id);
-        if(optionalProduct.isPresent()){
-            Product product = optionalProduct.get();
-            if(product1.getName()!=null){
-                product.setName(product1.getName());
-            }
-             productRepository.save(product);
-            return Mono.just(product);
-        }
-        return Mono.just(null);*/
+                .flatMap(order -> productDtoMono.map(Utils::dtoToEntityProduct)
+                        .doOnNext(o -> o.setId(id)))
+                .map(Utils::entityToDtoProduct);
     }
 
     @Override
-    public Mono<Product> getProductById(Long id) {
+    public Mono<ProductDto> getProductById(Long id) {
         return productRepository.findById(id)
-                .doOnNext(e->e.setId(id));
-        /*Optional<Product> optionalProduct = productRepository.findById(id);
-        if(optionalProduct.isPresent()){
-            return Mono.just(optionalProduct.get());
-        }
-        return Mono.just(null);*/
+                .map(Utils::entityToDtoProduct);
     }
 
     @Override
-    public Mono<Boolean> deleteProductById(Long id){
-        productRepository.deleteById(id);
-
-        return Mono.just(true);
+    public Mono<Void> deleteProductById(Long id){
+        return productRepository.deleteById(id);
     }
 }
